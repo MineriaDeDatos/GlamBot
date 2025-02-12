@@ -9,13 +9,6 @@ __pycache__/
 .vscode/
 .idea/
 
-# Ignorar imágenes originales de CelebA
-backend/models/lip_model/celebA/img_align_celeba/
-backend/models/lip_model/celebA/*.txt
-
-# Ignorar modelos pesados (puedes subirlos a Google Drive o AWS)
-backend/models/lip_model/weights/
-
 # Ignorar entornos virtuales
 venv/
 .env
