@@ -1,0 +1,12 @@
+train: backend/models/lip_model/dataset/
+val: backend/models/lip_model/dataset/
+
+nc: 2  # Número de clases (labios maquillados y no maquillados)
+names: ["labios_no_maquillados", "labios_maquillados"]
+
+# Hiperparámetros de entrenamiento
+epochs: 50
+batch_size: 16
+img_size: 640
+optimizer: "SGD"
+weights: "yolov8n.pt"  # Modelo base de YOLO

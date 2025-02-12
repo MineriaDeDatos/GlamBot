@@ -8,3 +8,9 @@ firebase-admin
 numpy
 pillow
 transformers
+
+#librerias lip_model
+
+pandas
+tqdm
+
