@@ -65,7 +65,10 @@ class _NameScreenState extends State<NameScreen> {
                       onPressed: () => _submitName(context),
                       child: Text("Siguiente"),
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 10,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),

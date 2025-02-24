@@ -84,7 +84,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: const Icon(Icons.camera_alt),
                   label: const Text('Abrir Cámara'),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 15,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

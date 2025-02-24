@@ -63,10 +63,7 @@ class _AssistantCameraScreenState extends State<AssistantCameraScreen> {
                     SizedBox(height: 20),
                     Text(
                       "Por favor, prueba la cámara para continuar con la experiencia.",
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.black87,
-                      ),
+                      style: TextStyle(fontSize: 18, color: Colors.black87),
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 30),
@@ -76,7 +73,10 @@ class _AssistantCameraScreenState extends State<AssistantCameraScreen> {
                       icon: const Icon(Icons.camera_alt),
                       label: const Text('Abrir Cámara'),
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 15,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -88,10 +88,7 @@ class _AssistantCameraScreenState extends State<AssistantCameraScreen> {
                     // Instrucciones o mensaje adicional
                     Text(
                       "Haz clic en el botón para tomar una foto y seguir.",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.black87),
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 30),
@@ -102,13 +99,16 @@ class _AssistantCameraScreenState extends State<AssistantCameraScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CameraAssistantScreen(),
+                            builder: (context) => WebRTCVideoScreen(),
                           ),
                         );
                       },
                       child: Text("Continuar"),
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 15,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),

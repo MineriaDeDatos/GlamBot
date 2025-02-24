@@ -42,10 +42,7 @@ class WelcomeScreen extends StatelessWidget {
                     SizedBox(height: 10),
                     Text(
                       "Una aplicación creada para ti 💖",
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.black87,
-                      ),
+                      style: TextStyle(fontSize: 18, color: Colors.black87),
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 20),
@@ -71,7 +68,10 @@ class WelcomeScreen extends StatelessWidget {
                       },
                       child: Text("Continuar"),
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 15,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
