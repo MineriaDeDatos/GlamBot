@@ -1,0 +1,7 @@
+opencv-python~=4.11.0.86
+numpy~=2.1.1
+aiohttp~=3.11.12
+aiortc~=1.10.1
+ultralytics~=8.3.78
+uvicorn~=0.34.0
+fastapi~=0.115.8
