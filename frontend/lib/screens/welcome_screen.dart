@@ -22,40 +22,56 @@ class WelcomeScreen extends StatelessWidget {
           SafeArea(
             child: Center(
               child: Container(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.all(30),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.85),
-                  borderRadius: BorderRadius.circular(15),
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 15,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Título con estilo mejorado
                     Text(
                       "¡Bienvenido a GlamBot!",
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryColor,
+                        letterSpacing: 1.2, // Espaciado entre letras
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: 20),
+                    // Subtítulo
                     Text(
                       "Una aplicación creada para ti 💖",
-                      style: TextStyle(fontSize: 18, color: Colors.black87),
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w400,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 20),
+                    // Nombre del usuario
                     Text(
                       "$userName",
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryColor,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 30),
+                    // Botón "Continuar"
                     ElevatedButton(
                       onPressed: () {
                         // Navega a la pantalla del asistente (AssistantCameraScreen)
@@ -73,10 +89,11 @@ class WelcomeScreen extends StatelessWidget {
                           vertical: 15,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         backgroundColor: AppTheme.primaryColor,
                         foregroundColor: Colors.white,
+                        elevation: 5, // Sombra
                       ),
                     ),
                   ],

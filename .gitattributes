@@ -1,0 +1,1 @@
+backend/models/fasesDeteccion/Modelos/facesDetection_model.pt filter=lfs diff=lfs merge=lfs -text

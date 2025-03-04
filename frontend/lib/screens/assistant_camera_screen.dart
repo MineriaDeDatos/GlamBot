@@ -35,67 +35,64 @@ class _AssistantCameraScreenState extends State<AssistantCameraScreen> {
           // Fondo de pantalla
           Positioned.fill(
             child: Image.asset(
-              'assets/images/background.jpg',
+              'assets/images/background.jpg', // Asegúrate de que la imagen exista
               fit: BoxFit.cover,
             ),
           ),
           SafeArea(
             child: Center(
               child: Container(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.all(30),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.85),
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 20,
+                      offset: Offset(0, 10),
+                    ),
+                  ],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Mensaje del asistente
+                    // Título con mayor visibilidad
                     Text(
                       "¡Hola! Soy tu asistente virtual 💁‍♀️",
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryColor,
+                        letterSpacing: 1.2, // Espaciado entre letras
                       ),
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 20),
+                    // Descripción
                     Text(
-                      "Por favor, prueba la cámara para continuar con la experiencia.",
+                      "Por favor, asegúrate de tener la cámara y el micrófono habilitados.",
                       style: TextStyle(fontSize: 18, color: Colors.black87),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 30),
-                    // Botón para abrir la cámara
-                    ElevatedButton.icon(
-                      onPressed: _openCamera,
-                      icon: const Icon(Icons.camera_alt),
-                      label: const Text('Abrir Cámara'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 15,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        backgroundColor: AppTheme.primaryColor,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                    SizedBox(height: 30),
-                    // Instrucciones o mensaje adicional
+                    SizedBox(height: 20),
                     Text(
-                      "Haz clic en el botón para tomar una foto y seguir.",
+                      "Para un mejor rendimiento, evita usar accesorios como lentes o auriculares.",
+                      style: TextStyle(fontSize: 16, color: Colors.black54),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 40),
+                    // Mensaje indicando que es necesario continuar para acceder a la cámara y micro
+                    Text(
+                      "Al continuar, activaremos la cámara y el micrófono para que puedas interactuar con el asistente.",
                       style: TextStyle(fontSize: 16, color: Colors.black87),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 30),
-                    // Botón para continuar a la siguiente pantalla (donde se muestra la cámara en tiempo real y el asistente interactúa)
+                    SizedBox(height: 40),
+                    // Botón para continuar
                     ElevatedButton(
                       onPressed: () {
-                        // Navega a la siguiente pantalla
+                        // Navega a la siguiente pantalla (donde se muestra la cámara en tiempo real)
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -107,13 +104,14 @@ class _AssistantCameraScreenState extends State<AssistantCameraScreen> {
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.symmetric(
                           horizontal: 40,
-                          vertical: 15,
+                          vertical: 18,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(15),
                         ),
                         backgroundColor: AppTheme.primaryColor,
                         foregroundColor: Colors.white,
+                        elevation: 5, // Sombra sutil para profundidad
                       ),
                     ),
                   ],
