@@ -13,6 +13,8 @@ class _WebRTCVideoScreenState extends State<WebRTCVideoScreen> {
   MediaStream? _localStream;
   RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
   RTCVideoRenderer _localRenderer = RTCVideoRenderer();
+  String _faceType = ''; // Tipo de rostro
+  double _confidence = 0.0; // Probabilidad de clasificación
 
   @override
   void initState() {
@@ -35,15 +37,20 @@ class _WebRTCVideoScreenState extends State<WebRTCVideoScreen> {
   }
 
   Future<void> startCall() async {
-    // Obtener la cámara y crear el stream local
+    // Obtener la cámara y crear el stream local con resolución máxima
     _localStream = await navigator.mediaDevices.getUserMedia({
       'audio': false,
-      'video': {'facingMode': 'user'},
+      'video': {
+        'facingMode': 'user', // Cámara frontal
+        'width': {'ideal': 1920}, // Resolución máxima deseada
+        'height': {'ideal': 1080}, // Resolución máxima deseada
+        'frameRate': {'ideal': 30}, // Asegurar 30 fps
+      },
     });
 
     _localRenderer.srcObject = _localStream;
 
-    // Configurar la conexión peer
+    // Configuración avanzada de la conexión peer con requisitos de resolución
     Map<String, dynamic> configuration = {
       "iceServers": [
         {"urls": "stun:stun.l.google.com:19302"},
@@ -51,6 +58,17 @@ class _WebRTCVideoScreenState extends State<WebRTCVideoScreen> {
     };
 
     _peerConnection = await createPeerConnection(configuration);
+
+    // Establecer preferencias de resolución para el stream remoto
+    var constraints = {
+      "mandatory": {
+        "OfferToReceiveVideo": true,
+        "maxWidth": 1920, // Establecer resolución máxima
+        "maxHeight": 1080,
+        "maxFrameRate": 30,
+      },
+      "optional": [],
+    };
 
     // Agregar el stream local a la conexión
     _localStream?.getTracks().forEach((track) {
@@ -83,6 +101,22 @@ class _WebRTCVideoScreenState extends State<WebRTCVideoScreen> {
       responseJson["type"],
     );
     await _peerConnection!.setRemoteDescription(answer);
+
+    // Actualizar tipo de rostro y confianza
+    updateFaceClassification(responseJson);
+  }
+
+  // Función para actualizar el tipo de rostro y la confianza
+  void updateFaceClassification(Map<String, dynamic> responseJson) {
+    if (responseJson.containsKey("predictions")) {
+      var predictions = responseJson["predictions"];
+      if (predictions.isNotEmpty) {
+        setState(() {
+          _faceType = predictions[0]["class"];
+          _confidence = predictions[0]["confidence"];
+        });
+      }
+    }
   }
 
   @override
@@ -91,10 +125,34 @@ class _WebRTCVideoScreenState extends State<WebRTCVideoScreen> {
       appBar: AppBar(title: Text("WebRTC con YOLO")),
       body: Column(
         children: [
-          Expanded(child: RTCVideoView(_remoteRenderer)),
+          // Barra de información con tipo de rostro y confianza
           Container(
-            height: 150,
-            child: RTCVideoView(_localRenderer, mirror: true),
+            color: Colors.black.withOpacity(0.6),
+            padding: EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Tipo de rostro: $_faceType",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                Text(
+                  "Confianza: ${(_confidence * 100).toStringAsFixed(2)}%",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ],
+            ),
+          ),
+          // Vista remota
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              child: RTCVideoView(
+                _remoteRenderer,
+                objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+              ),
+            ),
           ),
         ],
       ),
