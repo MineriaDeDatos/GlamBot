@@ -22,6 +22,8 @@ model_labios = YOLO(
     "./Modelos/lipmakeupdetection21_model.pt")
 model_ojos = YOLO(
     "./Modelos/eyesclassification_model.pt")
+model_tono_piel = YOLO(  # Añadido el modelo para el tono de piel
+    "./Modelos/skinClas_model.pt")
 
 
 class VideoTransformTrack(VideoStreamTrack):
@@ -43,6 +45,9 @@ class VideoTransformTrack(VideoStreamTrack):
         rostras = results_deteccion_rosto[0].boxes  # Obtener las cajas de detección
         annotated_img = img.copy()  # Copia para anotación
 
+        # Diccionario para almacenar las características detectadas
+        features = {}
+
         # Clasificación y anotación del tipo de rostro
         for rostro in rostras:
             x1, y1, x2, y2 = map(int, rostro.xyxy[0])  # Coordenadas del rectángulo del rostro
@@ -62,6 +67,21 @@ class VideoTransformTrack(VideoStreamTrack):
             cv2.putText(annotated_img, f"{tipo_rostro} ({probabilidad_maxima * 100:.2f}%)",
                         (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
 
+            # Clasificar el tono de piel
+            results_tono_piel = model_tono_piel(rostro_cortado)
+            tono_piel = results_tono_piel[0].names[results_tono_piel[0].probs.top1]  # Tono de piel clasificado
+            probabilidad_tono_piel = float(results_tono_piel[0].probs.top1conf)  # Probabilidad más alta
+
+            # Escribir el tono de piel y la probabilidad en la imagen
+            cv2.putText(annotated_img, f"Tono: {tono_piel} ({probabilidad_tono_piel * 100:.2f}%)",
+                        (x1, y2 + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 255), 2)
+
+            # Crear el prompt JSON con los resultados
+            features["rostro"] = tipo_rostro
+            features["tono_piel"] = tono_piel
+            features["probabilidad_tono_piel"] = probabilidad_tono_piel
+            features["probabilidad_rostro"] = probabilidad_maxima
+
         # Procesar labios (opcional)
         results_labios = model_labios(img)
         annotated_img_labios = results_labios[0].plot()  # La imagen anotada con los resultados de labios
@@ -70,7 +90,7 @@ class VideoTransformTrack(VideoStreamTrack):
         results_ojos = model_ojos(img)
         annotated_img_ojos = results_ojos[0].plot()  # La imagen anotada con los resultados de ojos
 
-        # Combinar los resultados de rostro, labios y ojos
+        # Combinar los resultados de rostro, labios, ojos y tono de piel
         combined_img = cv2.addWeighted(annotated_img, 0.33, annotated_img_labios, 0.33, 0)
         combined_img = cv2.addWeighted(combined_img, 1, annotated_img_ojos, 0.33, 0)
 
@@ -78,6 +98,10 @@ class VideoTransformTrack(VideoStreamTrack):
         new_frame = frame.from_ndarray(combined_img, format="bgr24")
         new_frame.pts = frame.pts
         new_frame.time_base = frame.time_base
+
+        # Enviar las características como un JSON
+        print(json.dumps(features))  # Aquí es donde puedes ver el JSON generado
+
         return new_frame
 
 

@@ -4,15 +4,15 @@ from ultralytics import YOLO
 
 # Cargar los modelos YOLOv8 (.pt) para cada tarea
 model_deteccion_rosto = YOLO(
-    "C:/Users/ASUS/Desktop/MineriaPF/GlamBot/backend/models/fasesDeteccion/Modelos/fashion_model.pt")
+    "./Modelos/fashion_model.pt")
 model_clasificacion_rosto = YOLO(
-    "C:/Users/ASUS/Desktop/MineriaPF/GlamBot/backend/models/fasesDeteccion/Modelos/facesclassification_model.pt")
+    "./Modelos/facesclassification_model.pt")
 model_labios = YOLO(
-    "C:/Users/ASUS/Desktop/MineriaPF/GlamBot/backend/models/fasesDeteccion/Modelos/lipmakeupdetection21_model.pt")
+    "./Modelos/lipmakeupdetection21_model.pt")
 model_ojos = YOLO(
-    "C:/Users/ASUS/Desktop/MineriaPF/GlamBot/backend/models/fasesDeteccion/Modelos/eyesclassification_model.pt")
+    "./Modelos/eyesclassification_model.pt")
 model_tono_piel = YOLO(
-    "C:/Users/ASUS/Desktop/MineriaPF/GlamBot/backend/models/fasesDeteccion/Modelos/skinClas_model.pt")
+    "./Modelos/skinClas_model.pt")
 
 # Función para generar el prompt para StyleGAN
 def generar_prompt(labels):
