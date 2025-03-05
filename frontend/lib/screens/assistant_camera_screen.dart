@@ -57,9 +57,9 @@ class _AssistantCameraScreenState extends State<AssistantCameraScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Título con mayor visibilidad
+                    // Título actualizado
                     Text(
-                      "¡Hola! Soy tu asistente virtual 💁‍♀️",
+                      "¡Listo, vamos a empezar! Soy tu asistente virtual 💁‍♀️",
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,

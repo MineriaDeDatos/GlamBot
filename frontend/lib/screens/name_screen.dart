@@ -50,22 +50,50 @@ class _NameScreenState extends State<NameScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Título con estilo mejorado
+                    // Título con mensaje de bienvenida
                     Text(
-                      "¿Cómo te llamas?",
+                      "¡Bienvenida a Glambot! ✨",
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryColor,
-                        letterSpacing: 1.2, // Espaciado entre letras
+                        letterSpacing: 1.5, // Espaciado entre letras
+                        shadows: [
+                          Shadow(
+                            color: Colors.black45,
+                            blurRadius: 5,
+                            offset: Offset(2, 2),
+                          ),
+                        ],
                       ),
+                    ),
+                    SizedBox(height: 15),
+                    Text(
+                      "¡Estamos emocionados de conocerte! 💖",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey[700],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 40),
+                    // Instrucción de cómo ingresar el nombre
+                    Text(
+                      "Dinos cómo te llamas para comenzar con tu experiencia Glambot ✨",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey[700],
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 30),
                     // Campo de texto
                     TextField(
                       controller: _nameController,
                       decoration: InputDecoration(
-                        hintText: "Ingresa tu nombre",
+                        hintText: "Ingresa tu nombre 😊",
                         hintStyle: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 16,

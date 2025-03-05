@@ -90,7 +90,7 @@ class _WebRTCVideoScreenState extends State<WebRTCVideoScreen> {
 
     // Enviar la oferta al servidor (ajusta la IP y puerto)
     var response = await http.post(
-      Uri.parse("http://192.168.1.88:8080/offer"),
+      Uri.parse("http://192.168.100.183:8080/offer"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"sdp": offer.sdp, "type": offer.type}),
     );

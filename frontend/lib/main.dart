@@ -17,17 +17,27 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration(seconds: 2), () {
+      if (mounted) { // Verifica si el widget aún está en la pantalla
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Simulamos una carga de 2 segundos antes de ir a HomeScreen
-    Future.delayed(Duration(seconds: 2), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
-    });
-
     return Scaffold(
       body: Center(
         child: CircularProgressIndicator(), // Indicador de carga

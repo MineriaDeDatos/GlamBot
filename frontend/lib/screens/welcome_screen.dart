@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
-import 'assistant_camera_screen.dart'; // Asegúrate de que la ruta sea correcta
+import 'skin_screen.dart'; // Importamos la pantalla de selección de piel
 
 class WelcomeScreen extends StatelessWidget {
   final String userName;
@@ -39,19 +39,19 @@ class WelcomeScreen extends StatelessWidget {
                   children: [
                     // Título con estilo mejorado
                     Text(
-                      "¡Bienvenido a GlamBot!",
+                      "¡Hola $userName, estamos listos para comenzar! 💖",
                       style: TextStyle(
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryColor,
-                        letterSpacing: 1.2, // Espaciado entre letras
+                        letterSpacing: 1.2,
                       ),
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 20),
                     // Subtítulo
                     Text(
-                      "Una aplicación creada para ti 💖",
+                      "Es hora de personalizar tu experiencia de maquillaje 🌟",
                       style: TextStyle(
                         fontSize: 20,
                         color: Colors.black87,
@@ -74,11 +74,11 @@ class WelcomeScreen extends StatelessWidget {
                     // Botón "Continuar"
                     ElevatedButton(
                       onPressed: () {
-                        // Navega a la pantalla del asistente (AssistantCameraScreen)
+                        // Navega a la pantalla de selección de tipo de piel
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => AssistantCameraScreen(),
+                            builder: (context) => SkinScreen(),
                           ),
                         );
                       },
