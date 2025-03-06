@@ -1,169 +1,128 @@
 import requests
 import pyttsx3
-import speech_recognition as sr
-import json
+import base64
+from flask import Flask, request, jsonify
 
-# Dirección del servidor local (asegúrate de que LM Studio esté corriendo con el modelo)
+# Configuración del servidor y el modelo
 SERVER_URL = "http://192.168.1.88:1234/v1/chat/completions"
-
-# Definir variables para el usuario y el modelo
-NOMBRE_USUARIO = "Karen"  # Nombre del usuario
+USER_DATA_URL = "http://192.168.1.88:5000/get_combined_data"  # URL para obtener los datos combinados
 NOMBRE_MODELO = "Meta-Llama-3.1-8B-Instruct"  # Nombre del modelo en LM Studio
-
-# JSON con datos de morfología facial (ejemplo)
-MORFOLOGIA_USUARIO = {
-    "tipo_rostro": "redondo",
-    "ojos": "grandes",
-    "color_piel": "clara"
-}
 
 # Inicialización de la voz
 engine = pyttsx3.init()
-
-# Configuración de voz personalizada
+engine.setProperty("rate", 160)  # Velocidad de habla
+engine.setProperty("volume", 0.9)  # Volumen
 VOZ_OBJETIVO = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_ES-MX_SABINA_11.0"
 
-# Buscar la voz exacta
+# Configuración de la voz
 voz_encontrada = None
 for voz in engine.getProperty('voices'):
     if voz.id == VOZ_OBJETIVO:
         voz_encontrada = voz
         break
-
 if voz_encontrada:
     engine.setProperty('voice', voz_encontrada.id)
-    print(f"✅ Voz seleccionada: {voz_encontrada.name}")
-else:
-    print("⚠️ Voz preferida no encontrada. Usando voz por defecto.")
-    print(f"Voces disponibles: {[voz.name for voz in engine.getProperty('voices')]}")
 
-# Configuración de la velocidad de habla y volumen
-engine.setProperty("rate", 160)  # Velocidad de habla
-engine.setProperty("volume", 0.9)  # Volumen
+# Flask para manejar interacciones
+app = Flask(__name__)
 
 
-# Función para limpiar el texto (eliminar caracteres innecesarios como # y *)
+# Función para obtener los datos del usuario desde el servidor
+def get_user_features():
+    try:
+        response = requests.get(USER_DATA_URL)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"⚠️ Error al obtener los datos del usuario: {response.status_code}")
+            return None
+    except Exception as e:
+        print(f"⚠️ Error al hacer la solicitud GET: {e}")
+        return None
+
+
+# Función para limpiar el texto (eliminar caracteres innecesarios)
 def clean_text(text):
     return text.replace("#", "").replace("*", "").replace("**", "").strip()
 
 
-# Función para convertir el texto en voz
-def speak(text):
-    text = clean_text(text)  # Limpiar el texto antes de hablar
-    engine.say(text)
-    engine.runAndWait()
-
-
-# Función para capturar la entrada de voz del usuario
-def listen():
-    recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        try:
-            recognizer.adjust_for_ambient_noise(source, duration=0.8)
-            print("\n🎤 [Escuchando...]")
-            audio = recognizer.listen(source, timeout=12, phrase_time_limit=18)
-            text = recognizer.recognize_google(audio, language="es-ES")
-            print(f"👤 [Usuario]: {text}")
-            return text
-        except sr.WaitTimeoutError:
-            print("⏳ [Sistema]: Tiempo de espera agotado")
-            return None
-        except Exception as e:
-            print(f"❌ [Error]: {str(e)}")
-            return None
-
-
-# Función para generar respuesta con el modelo local (LM Studio)
-def generate_response_with_local_model(user_input, morfologia):
+# Función para generar la respuesta con el modelo local (LM Studio)
+def generate_response_with_local_model(user_input, features, skin_type, name, conversation_history):
     try:
-        # Convertir la morfología a una descripción en texto
-        descripcion_morfologia = (
-            f"Tengo un rostro {morfologia['tipo_rostro']}, ojos {morfologia['ojos']} y piel {morfologia['color_piel']}."
+        # Limpiar el texto del usuario antes de procesarlo
+        user_input = clean_text(user_input)
+
+        # Convertir las características del usuario a una descripción
+        descripcion_features = (
+            f"Tengo un rostro {features['rostro']}, ojos {features['ojos']} y piel {features['tono_piel']}. "
+            f"Mi tipo de piel es {skin_type}."
         )
 
-        # Datos de entrada para el modelo
+        conversation_history.append({"role": "user", "content": user_input})
+
+        # Datos de entrada para el modelo, incluyendo el historial de conversación
         payload = {
             "model": NOMBRE_MODELO,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        f"Eres un experto en maquillaje y belleza personal. "
-                        f"Siempre me llamas '{NOMBRE_USUARIO}'. "
-                        "Tu objetivo es asesorarme sobre maquillaje, cuidado de la piel, peinados y estilos de belleza. "
-                        "Si la pregunta no es sobre estos temas, debes redirigir la conversación a maquillaje o belleza. "
-                        f"Mi información de belleza es la siguiente: {descripcion_morfologia}"
-                    )
-                },
-                {"role": "user", "content": user_input}
-            ],
-            "temperature": 0.7,  # Nivel de creatividad del modelo
-            "max_tokens": 300  # Límite de tokens generados
+            "messages": [{"role": "system",
+                          "content": f"Eres un experto en maquillaje y belleza personal. Siempre me llamas '{name}'. Mi información de belleza es la siguiente: {descripcion_features}"},
+                         *conversation_history],
+            "temperature": 0.7,
+            "max_tokens": 300
         }
 
         # Realizar la petición POST al servidor
         response = requests.post(SERVER_URL, json=payload)
-
-        # Si la respuesta es exitosa, procesarla
         if response.status_code == 200:
             response_data = response.json()
-            answer = response_data.get('choices', [{}])[0].get('message', {}).get('content', '')
-
-            # Si la respuesta no es sobre maquillaje, redirigir al tema correcto
-            if "no relacionado" in answer.lower() or "pregunta fuera de tema" in answer.lower():
-                return f"{NOMBRE_USUARIO}, recuerda que solo hablo sobre maquillaje y belleza. ¿Quieres consejos de maquillaje?"
-
-            return answer
+            return response_data.get('choices', [{}])[0].get('message', {}).get('content', '')
         else:
-            print(f"⚠️ Error al obtener la respuesta del modelo: {response.status_code}")
-            return "Ocurrió un error al procesar tu solicitud."
-
+            return "Error al procesar la solicitud"
     except Exception as e:
-        print(f"⚠️ Error al realizar la solicitud: {e}")
-        return "Ocurrió un error procesando tu solicitud."
+        return f"Error: {e}"
 
 
-# Función para preguntar preferencias al usuario
-def preguntar_preferencias():
-    speak(f"{NOMBRE_USUARIO}, ¿qué tipo de maquillaje prefieres hoy?")
-    print(f"🤖 [GlamBot]: {NOMBRE_USUARIO}, ¿qué tipo de maquillaje prefieres hoy?")
-    preferencia = listen()
+# Función para convertir texto en voz y devolverlo como base64
+def generate_audio_response(text):
+    engine.save_to_file(text, "response.mp3")
+    engine.runAndWait()
 
-    if not preferencia:
-        return "natural"  # Valor por defecto si no responde
+    # Convertir audio a base64
+    with open("response.mp3", "rb") as audio_file:
+        audio_base64 = base64.b64encode(audio_file.read()).decode('utf-8')
 
-    return preferencia
-
-
-# Función principal para interactuar con el asistente
-def interact_with_assistant():
-    print(f"🤖 [GlamBot]: Hola {NOMBRE_USUARIO}, soy GlamBot. ¿En qué puedo ayudarte hoy?")
-    speak(f"Hola {NOMBRE_USUARIO}, soy GlamBot. ¿En qué puedo ayudarte hoy?")
-
-    while True:
-        user_input = listen()
-
-        if not user_input:
-            continue
-
-        # Verificar si el usuario quiere salir
-        if any(word in user_input.lower() for word in ["salir", "terminar", "adiós"]):
-            farewell = f"¡Gracias por conversar, {NOMBRE_USUARIO}! Hasta la próxima."
-            print(f"🤖 [GlamBot]: {farewell}")
-            speak(farewell)
-            break
-
-        # Preguntar preferencias
-        preferencia_maquillaje = preguntar_preferencias()
-
-        # Generar respuesta con el modelo incluyendo las preferencias
-        input_con_preferencia = f"{user_input}. Me gustaría un maquillaje {preferencia_maquillaje}."
-        response = generate_response_with_local_model(input_con_preferencia, MORFOLOGIA_USUARIO)
-
-        print(f"🤖 [GlamBot]: {response}")
-        speak(response)
+    return audio_base64
 
 
-# Ejecutar el asistente
+# Ruta para recibir mensajes del cliente y generar la respuesta
+@app.route("/interact", methods=["POST"])
+def interact():
+    # Obtener los datos del usuario
+    user_features = get_user_features()
+    if user_features is None:
+        return jsonify({"error": "No se pudieron obtener los datos del usuario"}), 500
+
+    data = request.json
+    user_input = data.get('message')
+    features = user_features.get("features", {})
+    skin_type = user_features.get("skin_type", "desconocido")
+    name = user_features.get("name", "Usuario")
+    conversation_history = data.get('conversation_history', [])
+
+    # Limpiar el texto del usuario antes de procesarlo
+    user_input = clean_text(user_input)
+
+    # Obtener la respuesta del modelo
+    response_text = generate_response_with_local_model(user_input, features, skin_type, name, conversation_history)
+
+    # Generar audio para la respuesta
+    audio_base64 = generate_audio_response(response_text)
+
+    return jsonify({
+        "text_response": response_text,
+        "audio_response": audio_base64
+    })
+
+
+# Ejecutar el servidor Flask
 if __name__ == "__main__":
-    interact_with_assistant()
+    app.run(host="0.0.0.0", port=5001)

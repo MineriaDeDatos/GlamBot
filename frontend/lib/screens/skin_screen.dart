@@ -1,29 +1,55 @@
+import 'dart:convert'; // Para usar jsonEncode
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http; // Importa el paquete http
 import 'assistant_camera_screen.dart'; // Importamos la pantalla de la cámara
 
 class SkinScreen extends StatelessWidget {
+  // Función para enviar el tipo de piel al servidor
+  Future<void> sendSkinTypeToServer(String skinType) async {
+    final response = await http.post(
+      Uri.parse(
+        'http://192.168.1.88:5000/receive_skin_type',
+      ), // Reemplaza con la IP de tu servidor
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'skin_type': skinType}),
+    );
+
+    if (response.statusCode == 200) {
+      print('Tipo de piel enviado correctamente');
+    } else {
+      print('Error al enviar el tipo de piel');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final skinTypes = [
       {
         'name': 'Grasa ✨',
-        'image': 'https://i.pinimg.com/736x/25/d1/2c/25d12c2fc80bcbf063dd883f6aed3cbb.jpg',
+        'image':
+            'https://i.pinimg.com/736x/25/d1/2c/25d12c2fc80bcbf063dd883f6aed3cbb.jpg',
         'description': 'Piel con exceso de brillo y tendencia a acné. 🧴✨',
       },
       {
         'name': 'Mixta 🌿',
-        'image': 'https://i.pinimg.com/736x/1c/0a/38/1c0a38947e7d43789453ab82bd0ac0e3.jpg',
-        'description': 'Zona T grasa (frente, nariz, barbilla) y mejillas normales o secas. Balance esencial. 🌿💆‍♀️',
+        'image':
+            'https://i.pinimg.com/736x/1c/0a/38/1c0a38947e7d43789453ab82bd0ac0e3.jpg',
+        'description':
+            'Zona T grasa (frente, nariz, barbilla) y mejillas normales o secas. Balance esencial. 🌿💆‍♀️',
       },
       {
         'name': 'Seca 💧',
-        'image': 'https://i.pinimg.com/736x/d9/45/cc/d945cc67016b7786a79c8900d1bb346c.jpg',
-        'description': 'Piel que se siente tirante y puede descamarse. Necesita mucha hidratación. 💦🧴',
+        'image':
+            'https://i.pinimg.com/736x/d9/45/cc/d945cc67016b7786a79c8900d1bb346c.jpg',
+        'description':
+            'Piel que se siente tirante y puede descamarse. Necesita mucha hidratación. 💦🧴',
       },
       {
         'name': 'Normal 🌸',
-        'image': 'https://i.pinimg.com/736x/a2/e6/eb/a2e6eb5fefdc8ad93c7d5a0f462d0e9f.jpg',
-        'description': 'Equilibrada, sin exceso de grasa ni resequedad. Suave y saludable. ✨💖',
+        'image':
+            'https://i.pinimg.com/736x/a2/e6/eb/a2e6eb5fefdc8ad93c7d5a0f462d0e9f.jpg',
+        'description':
+            'Equilibrada, sin exceso de grasa ni resequedad. Suave y saludable. ✨💖',
       },
     ];
 
@@ -50,7 +76,12 @@ class SkinScreen extends StatelessWidget {
                       Container(
                         padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Color.fromARGB(255, 252, 231, 231), // Rosa palo
+                          color: Color.fromARGB(
+                            255,
+                            252,
+                            231,
+                            231,
+                          ), // Rosa palo
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Column(
@@ -66,7 +97,7 @@ class SkinScreen extends StatelessWidget {
                                     color: Colors.black45,
                                     blurRadius: 5,
                                     offset: Offset(2, 2),
-                                  )
+                                  ),
                                 ],
                               ),
                               textAlign: TextAlign.center,
@@ -83,7 +114,7 @@ class SkinScreen extends StatelessWidget {
                                     color: Colors.black45,
                                     blurRadius: 3,
                                     offset: Offset(1, 1),
-                                  )
+                                  ),
                                 ],
                               ),
                               textAlign: TextAlign.center,
@@ -103,7 +134,7 @@ class SkinScreen extends StatelessWidget {
                       final skin = skinTypes[index];
 
                       return GestureDetector(
-                        onTap: () {
+                        onTap: () async {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('💖 Seleccionaste ${skin['name']}'),
@@ -111,6 +142,10 @@ class SkinScreen extends StatelessWidget {
                               backgroundColor: Colors.pinkAccent,
                             ),
                           );
+
+                          // Enviar el tipo de piel al servidor
+                          await sendSkinTypeToServer(skin['name']!);
+
                           // Navegar a la cámara después de la selección
                           Navigator.push(
                             context,
@@ -138,20 +173,33 @@ class SkinScreen extends StatelessWidget {
                                     width: 120, // Tamaño fijo de imagen
                                     height: 120,
                                     fit: BoxFit.cover,
-                                    loadingBuilder: (context, child, loadingProgress) {
+                                    loadingBuilder: (
+                                      context,
+                                      child,
+                                      loadingProgress,
+                                    ) {
                                       if (loadingProgress == null) return child;
-                                      return Center(child: CircularProgressIndicator());
+                                      return Center(
+                                        child: CircularProgressIndicator(),
+                                      );
                                     },
                                     errorBuilder: (context, error, stackTrace) {
-                                      return Icon(Icons.error, size: 50, color: Colors.red);
+                                      return Icon(
+                                        Icons.error,
+                                        size: 50,
+                                        color: Colors.red,
+                                      );
                                     },
                                   ),
                                 ),
-                                SizedBox(width: 15), // Espacio entre imagen y texto
+                                SizedBox(
+                                  width: 15,
+                                ), // Espacio entre imagen y texto
                                 // Texto a la derecha
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         skin['name']!,

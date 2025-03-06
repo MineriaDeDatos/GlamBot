@@ -2,8 +2,9 @@ import argparse
 import asyncio
 import json
 import logging
-
+import requests
 import cv2
+import time
 import numpy as np
 from aiohttp import web
 from aiortc import RTCPeerConnection, RTCSessionDescription, VideoStreamTrack
@@ -13,17 +14,14 @@ from ultralytics import YOLO
 logger = logging.getLogger("pc")
 pcs = set()
 
-# Cargar los modelos YOLOv8 (.pt); ajusta la ruta según corresponda
-model_deteccion_rosto = YOLO(
-    "./Modelos/fashion_model.pt")
-model_clasificacion_rosto = YOLO(
-    "./Modelos/facesclassification_model.pt")
-model_labios = YOLO(
-    "./Modelos/lipmakeupdetection21_model.pt")
-model_ojos = YOLO(
-    "./Modelos/eyesclassification_model.pt")
-model_tono_piel = YOLO(  # Añadido el modelo para el tono de piel
-    "./Modelos/skinClas_model.pt")
+# Cargar los modelos YOLOv8 (.pt)
+model_deteccion_rosto = YOLO("./Modelos/fashion_model.pt")
+model_clasificacion_rosto = YOLO("./Modelos/facesclassification_model.pt")
+model_ojos = YOLO("./Modelos/eyesclassification_model.pt")
+model_tono_piel = YOLO("./Modelos/skinClas_model.pt")
+
+# Variable global para almacenar las características detectadas
+global_features = {}
 
 
 class VideoTransformTrack(VideoStreamTrack):
@@ -32,77 +30,84 @@ class VideoTransformTrack(VideoStreamTrack):
     """
 
     def __init__(self, track):
-        super().__init__()  # inicializa la clase padre
+        super().__init__()  # Inicializa la clase padre
         self.track = track
+        self.features = {}  # Diccionario para almacenar las características detectadas
 
     async def recv(self):
         frame = await self.track.recv()
-        # Convertir el fotograma a una imagen BGR (numpy array)
-        img = frame.to_ndarray(format="bgr24")
+        img = frame.to_ndarray(format="bgr24")  # Convertir el fotograma a imagen BGR
 
-        # Procesar la imagen con YOLOv8 (detección de rostro)
+        # Procesar la imagen con YOLO (detección de rostro)
         results_deteccion_rosto = model_deteccion_rosto(img)
-        rostras = results_deteccion_rosto[0].boxes  # Obtener las cajas de detección
-        annotated_img = img.copy()  # Copia para anotación
+        rostros = results_deteccion_rosto[0].boxes
+        annotated_img = img.copy()
 
-        # Diccionario para almacenar las características detectadas
-        features = {}
+        # Procesar cada rostro detectado
+        for rostro in rostros:
+            x1, y1, x2, y2 = map(int, rostro.xyxy[0])  # Coordenadas del rostro
+            cv2.rectangle(annotated_img, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Dibujar cuadro
 
-        # Clasificación y anotación del tipo de rostro
-        for rostro in rostras:
-            x1, y1, x2, y2 = map(int, rostro.xyxy[0])  # Coordenadas del rectángulo del rostro
-            cv2.rectangle(annotated_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-
-            # Cortar la región del rostro para la clasificación
+            # Cortar la región del rostro
             rostro_cortado = img[y1:y2, x1:x2]
 
-            # Clasificar el tipo de rostro con el modelo de clasificación
+            # Clasificación de tipo de rostro
             results_clasificacion_rosto = model_clasificacion_rosto(rostro_cortado)
-            probs = results_clasificacion_rosto[0].probs[0]  # Probabilidades como tensor
-            probabilidad_maxima = float(results_clasificacion_rosto[0].probs.top1conf)  # Probabilidad más alta
-            tipo_rostro = results_clasificacion_rosto[0].names[
-                results_clasificacion_rosto[0].probs.top1]  # Tipo de rostro clasificado
+            tipo_rostro = results_clasificacion_rosto[0].names[results_clasificacion_rosto[0].probs.top1]
 
-            # Escribir el tipo de rostro y la probabilidad en la imagen
-            cv2.putText(annotated_img, f"{tipo_rostro} ({probabilidad_maxima * 100:.2f}%)",
-                        (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
-
-            # Clasificar el tono de piel
+            # Clasificación de tono de piel
             results_tono_piel = model_tono_piel(rostro_cortado)
-            tono_piel = results_tono_piel[0].names[results_tono_piel[0].probs.top1]  # Tono de piel clasificado
-            probabilidad_tono_piel = float(results_tono_piel[0].probs.top1conf)  # Probabilidad más alta
+            tono_piel = results_tono_piel[0].names[results_tono_piel[0].probs.top1]
 
-            # Escribir el tono de piel y la probabilidad en la imagen
-            cv2.putText(annotated_img, f"Tono: {tono_piel} ({probabilidad_tono_piel * 100:.2f}%)",
-                        (x1, y2 + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 255), 2)
+            # Clasificación de ojos
+            results_ojos = model_ojos(rostro_cortado)
+            tipo_ojos = results_ojos[0].names[results_ojos[0].probs.top1]
 
-            # Crear el prompt JSON con los resultados
-            features["rostro"] = tipo_rostro
-            features["tono_piel"] = tono_piel
-            features["probabilidad_tono_piel"] = probabilidad_tono_piel
-            features["probabilidad_rostro"] = probabilidad_maxima
+            # Dibujar etiquetas en la imagen
+            cv2.putText(annotated_img, f"Rostro: {tipo_rostro}", (x1, y1 - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+            cv2.putText(annotated_img, f"Tono: {tono_piel}", (x1, y2 + 20),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+            cv2.putText(annotated_img, f"Ojos: {tipo_ojos}", (x1, y2 + 40),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 165, 255), 2)
 
-        # Procesar labios (opcional)
-        results_labios = model_labios(img)
-        annotated_img_labios = results_labios[0].plot()  # La imagen anotada con los resultados de labios
+            # Guardar en el JSON
+            self.features["rostro"] = tipo_rostro
+            self.features["tono_piel"] = tono_piel
+            self.features["ojos"] = tipo_ojos
 
-        # Procesar ojos (opcional)
-        results_ojos = model_ojos(img)
-        annotated_img_ojos = results_ojos[0].plot()  # La imagen anotada con los resultados de ojos
+        # Actualizar las características globales
+        global global_features
+        global_features = self.features.copy()  # Actualiza las características globales
 
-        # Combinar los resultados de rostro, labios, ojos y tono de piel
-        combined_img = cv2.addWeighted(annotated_img, 0.33, annotated_img_labios, 0.33, 0)
-        combined_img = cv2.addWeighted(combined_img, 1, annotated_img_ojos, 0.33, 0)
-
-        # Crear un nuevo frame a partir de la imagen procesada
-        new_frame = frame.from_ndarray(combined_img, format="bgr24")
+        # Crear un nuevo frame con la imagen anotada
+        new_frame = frame.from_ndarray(annotated_img, format="bgr24")
         new_frame.pts = frame.pts
         new_frame.time_base = frame.time_base
 
-        # Enviar las características como un JSON
-        print(json.dumps(features))  # Aquí es donde puedes ver el JSON generado
+        # Imprimir el JSON generado
+        print(f"Características detectadas: {json.dumps(self.features)}")
 
         return new_frame
+
+
+# Función para enviar las características al servidor
+def send_json_to_client2(features):
+    """
+    Función para enviar el JSON al client2 cuando la conexión ICE se cierra.
+    """
+    if features:
+        print(f"Datos a enviar a client2: {json.dumps(features)}")  # Imprime los datos que se enviarán
+        try:
+            # Convertir las características a JSON antes de enviarlas
+            response = requests.post('http://192.168.1.88:5000/receive_features', json=features)
+            print(f"Respuesta del servidor client2: {response.status_code}")  # Ver el código de estado
+            if response.status_code == 200:
+                print("✅ JSON enviado correctamente a client2")
+            else:
+                print(f"⚠️ Error al enviar JSON: {response.text}")
+        except Exception as e:
+            print(f"❌ Error al conectar con client2: {str(e)}")
 
 
 async def offer(request):
@@ -114,7 +119,24 @@ async def offer(request):
     @pc.on("iceconnectionstatechange")
     async def on_iceconnectionstatechange():
         print("ICE connection state is %s" % pc.iceConnectionState)
-        if pc.iceConnectionState == "failed":
+
+        if pc.iceConnectionState == "closed":
+            print("🔴 ICE closed detected, attempting to send JSON.")
+
+            # Usar la variable global para las características
+            if global_features:
+                print(f"Características detectadas: {json.dumps(global_features)}")  # Aquí se imprime el JSON
+            else:
+                print("⚠️ No se detectaron características.")
+
+            await asyncio.sleep(1)  # Retraso para asegurar que todo esté cerrado
+
+            # Enviar el JSON si existen características
+            if global_features:  # Asegurarse de que las características existen
+                send_json_to_client2(global_features)
+            else:
+                print("⚠️ No features found to send.")
+
             await pc.close()
             pcs.discard(pc)
 
@@ -140,7 +162,6 @@ async def offer(request):
 
 
 async def on_shutdown(app):
-    # Cierra todas las conexiones
     coros = [pc.close() for pc in pcs]
     await asyncio.gather(*coros)
     pcs.clear()

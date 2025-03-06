@@ -1,4 +1,6 @@
+import 'dart:convert'; // Para usar jsonEncode
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http; // Importa el paquete http
 import '../theme.dart';
 import 'skin_screen.dart'; // Importamos la pantalla de selección de piel
 
@@ -6,6 +8,23 @@ class WelcomeScreen extends StatelessWidget {
   final String userName;
 
   const WelcomeScreen({Key? key, required this.userName}) : super(key: key);
+
+  // Función para enviar el nombre al servidor
+  Future<void> sendNameToServer(String name) async {
+    final response = await http.post(
+      Uri.parse(
+        'http://192.168.1.88:5000/receive_name',
+      ), // Reemplaza con la IP de tu servidor
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'name': name}),
+    );
+
+    if (response.statusCode == 200) {
+      print('Nombre enviado correctamente');
+    } else {
+      print('Error al enviar el nombre');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,13 +92,14 @@ class WelcomeScreen extends StatelessWidget {
                     SizedBox(height: 30),
                     // Botón "Continuar"
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        // Enviar el nombre al servidor
+                        await sendNameToServer(userName);
+
                         // Navega a la pantalla de selección de tipo de piel
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => SkinScreen(),
-                          ),
+                          MaterialPageRoute(builder: (context) => SkinScreen()),
                         );
                       },
                       child: Text("Continuar"),

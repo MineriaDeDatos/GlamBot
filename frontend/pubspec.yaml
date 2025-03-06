@@ -42,6 +42,9 @@ dependencies:
   socket_io_client: ^3.0.2
   flutter_webrtc: ^0.12.11
   flutter_launcher_icons: ^0.14.3
+  path_provider: ^2.0.11
+  flutter_tts: ^4.2.2
+  audioplayers: ^6.2.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
