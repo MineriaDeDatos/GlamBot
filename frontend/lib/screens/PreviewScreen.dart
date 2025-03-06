@@ -10,8 +10,8 @@ class PreviewScreen extends StatelessWidget {
 
   PreviewScreen({Key? key, required this.imageFile}) : super(key: key);
 
-  // Función para enviar la imagen al servidor
-  Future<void> sendImageToServer(XFile imageFile) async {
+  // Función para enviar la imagen al servidor y validar la respuesta
+  Future<bool> sendImageToServer(XFile imageFile) async {
     final request = http.MultipartRequest(
       'POST',
       Uri.parse('http://192.168.1.88:5000/receive_photo'),
@@ -25,11 +25,14 @@ class PreviewScreen extends StatelessWidget {
       final response = await request.send();
       if (response.statusCode == 200) {
         print('Imagen enviada correctamente');
+        return true; // Permitir la navegación
       } else {
         print('Error al enviar la imagen: ${response.statusCode}');
+        return false; // Bloquear la navegación
       }
     } catch (e) {
       print('Error al enviar la imagen: $e');
+      return false;
     }
   }
 
@@ -47,11 +50,37 @@ class PreviewScreen extends StatelessWidget {
             children: [
               ElevatedButton(
                 onPressed: () async {
-                  await sendImageToServer(imageFile!);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => AssistantScreen()),
-                  );
+                  bool success = await sendImageToServer(imageFile!);
+                  if (success) {
+                    // Solo navegar si la imagen fue aceptada
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AssistantScreen(),
+                      ),
+                    );
+                  } else {
+                    // Mostrar alerta si la imagen es rechazada
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("Error"),
+                          content: Text(
+                            "No se detectó un rostro en la imagen. Intenta nuevamente.",
+                          ),
+                          actions: [
+                            TextButton(
+                              child: Text("Aceptar"),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
                 },
                 child: Text("Aceptar"),
               ),

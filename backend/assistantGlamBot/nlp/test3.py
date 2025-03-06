@@ -9,7 +9,7 @@ pipe = StableDiffusionXLImg2ImgPipeline.from_single_file(
 pipe.to("cuda")
 
 # Cargar la imagen base (asegúrate de que exista)
-init_image = Image.open("pablito.jpg").convert("RGB").resize((1024, 1024))
+init_image = Image.open("../pablito.jpg").convert("RGB").resize((1024, 1024))
 
 # Generar imagen basada en la imagen base y el nuevo prompt
 prompt = "Maquillaje para boda con tonos dorados"

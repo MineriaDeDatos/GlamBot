@@ -20,7 +20,7 @@ controlnet = ControlNetModel.from_pretrained(
 pipe.controlnet = controlnet
 
 # 📌 Cargar la imagen base
-image_path = "imagen_base.jpg"
+image_path = "../imagen_base.jpg"
 image = Image.open(image_path).convert("RGB")
 
 # 📌 Aplicar filtro de detección de bordes (Canny Edge)

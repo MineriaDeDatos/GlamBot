@@ -1,6 +1,9 @@
 from flask import Flask, request, jsonify, send_from_directory
 import os
 from werkzeug.utils import secure_filename
+import cv2
+import numpy as np
+from ultralytics import YOLO
 
 app = Flask(__name__)
 
@@ -8,6 +11,9 @@ app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}
+
+# Cargar modelo YOLO para detección de rostros
+model_deteccion_rostro = YOLO("./Modelos/fashion_model.pt")
 
 # Estructura para almacenar los datos temporalmente
 user_data = {}
@@ -57,10 +63,23 @@ def receive_photo():
         photo = request.files['photo']
 
         if photo and allowed_file(photo.filename):
+            # Convertir la imagen en un formato compatible con OpenCV
+            nparr = np.frombuffer(photo.read(), np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+            # Validar que la imagen contenga al menos un rostro
+            results = model_deteccion_rostro(img)
+            rostros = results[0].boxes  # Extraer cajas de detección
+
+            if len(rostros) == 0:
+                return jsonify({"message": "No face detected!"}), 400
+
+            # Guardar la imagen si tiene al menos un rostro
+            photo.seek(0)  # Resetear el puntero del archivo
             filename = secure_filename(photo.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             photo.save(filepath)
-            user_data['photo'] = filepath  # Guardar la ruta del archivo de la foto
+
             return jsonify({"message": "Photo received successfully!"}), 200
         else:
             return jsonify({"message": "Invalid photo format!"}), 400
