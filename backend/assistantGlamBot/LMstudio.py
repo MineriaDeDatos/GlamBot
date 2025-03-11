@@ -45,6 +45,8 @@ def generate_makeup_prompt(user_input, features, skin_type, name):
         rostro = features.get("rostro", "desconocido")
         ojos = features.get("ojos", "desconocido")
         piel = features.get("tono_piel", "desconocido")
+        cejas = features.get("cejas", "desconocido") 
+        labios = features.get("labios", "desconocido")
         skin_type = skin_type or piel  # Si `skin_type` está vacío, usa `tono_piel`
 
         # Construcción del prompt SOLO para maquillaje
@@ -52,7 +54,7 @@ def generate_makeup_prompt(user_input, features, skin_type, name):
             "role": "system",
             "content": (
                 f"Eres GlamBot, un experto en maquillaje. Solo genera respuestas relacionadas con maquillaje. Siempre me llamaras {name}. "
-                f"Mis características son: rostro {rostro}, ojos {ojos}, y piel {skin_type}. "
+                f"Mis características son: rostro {rostro}, ojos {ojos}, piel {skin_type},  cejas {cejas}y labios {labios}. "
                 "Basado en mi solicitud, sugiere un maquillaje ideal sin agregar información adicional."
             )
         }

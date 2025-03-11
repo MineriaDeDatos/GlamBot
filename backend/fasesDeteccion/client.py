@@ -19,6 +19,9 @@ model_deteccion_rosto = YOLO("./Modelos/fashion_model.pt")
 model_clasificacion_rosto = YOLO("./Modelos/facesclassification_model.pt")
 model_ojos = YOLO("./Modelos/eyesclassification_model.pt")
 model_tono_piel = YOLO("./Modelos/skinClas_model.pt")
+#nuevos modelos
+model_cejas_clasificacion = YOLO("./Modelos/cejasclasificacion_model.pt")
+model_labios_clasificacion = YOLO("./Modelos/labiosclasificacion_model.pt")
 
 # Variable global para almacenar las características detectadas
 global_features = {}
@@ -62,6 +65,16 @@ class VideoTransformTrack(VideoStreamTrack):
             # Clasificación de ojos
             results_ojos = model_ojos(rostro_cortado)
             tipo_ojos = results_ojos[0].names[results_ojos[0].probs.top1]
+            
+            # Clasificación de cejas
+            results_cejas = model_cejas_clasificacion(rostro_cortado)
+            tipo_cejas = results_cejas[0].names[results_cejas[0].probs.top1]
+
+            # Clasificación de labios
+            results_labios = model_labios_clasificacion(rostro_cortado)
+            tipo_labios = results_labios[0].names[results_labios[0].probs.top1]
+            
+
 
             # Dibujar etiquetas en la imagen
             cv2.putText(annotated_img, f"Rostro: {tipo_rostro}", (x1, y1 - 10),
@@ -71,10 +84,18 @@ class VideoTransformTrack(VideoStreamTrack):
             cv2.putText(annotated_img, f"Ojos: {tipo_ojos}", (x1, y2 + 40),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 165, 255), 2)
 
+            cv2.putText(annotated_img, f"Cejas: {tipo_cejas}", (x1, y2 + 60),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 165, 0), 2)
+            cv2.putText(annotated_img, f"Labios: {tipo_labios}", (x1, y2 + 80),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 20, 147), 2)
+            
             # Guardar en el JSON
             self.features["rostro"] = tipo_rostro
             self.features["tono_piel"] = tono_piel
             self.features["ojos"] = tipo_ojos
+
+            self.features["cejas"] = tipo_cejas
+            self.features["labios"] = tipo_labios
 
         # Actualizar las características globales
         global global_features
