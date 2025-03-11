@@ -5,7 +5,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
-import 'GeneradorMaquillajeScreen.dart'; // Update with the correct path
+import 'GeneradorMaquillajeScreen.dart'; // Actualiza con la ruta correcta
 
 class AssistantScreen extends StatefulWidget {
   @override
@@ -18,7 +18,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
   );
 
   List<String> messages = [];
-  String promptFinal = ""; // Variable para almacenar el prompt final
+  String promptFinal = "";
   stt.SpeechToText _speechToText = stt.SpeechToText();
   bool _isListening = false;
   AudioPlayer _audioPlayer = AudioPlayer();
@@ -26,12 +26,14 @@ class _AssistantScreenState extends State<AssistantScreen> {
 
   @override
   void dispose() {
+    // Detener la escucha de voz y la reproducción de audio cuando se cambie de pantalla
+    _speechToText.stop();
+    _audioPlayer.stop();
     channel.sink.close();
     _audioPlayer.dispose();
     super.dispose();
   }
 
-  // Función para enviar mensaje al backend y almacenar el prompt
   Future<Map<String, dynamic>> _sendMessageToBackend(String message) async {
     final response = await http.post(
       Uri.parse('http://192.168.1.88:5001/interact'),
@@ -41,53 +43,37 @@ class _AssistantScreenState extends State<AssistantScreen> {
 
     if (response.statusCode == 200) {
       Map<String, dynamic> responseBody = jsonDecode(response.body);
-
-      // Almacenar el prompt generado
       promptFinal = responseBody['text_response'];
-
-      // Regresar la respuesta con el audio y texto
       return responseBody;
     } else {
       throw Exception('Failed to load response');
     }
   }
 
-  // Función para escuchar y enviar el mensaje
   void listenAndSendMessage() async {
     if (!_isListening) {
       bool available = await _speechToText.initialize();
       if (available) {
-        setState(() {
-          _isListening = true;
-        });
+        setState(() => _isListening = true);
 
         _speechToText.listen(
           onResult: (result) async {
             if (result.hasConfidenceRating && result.confidence > 0.5) {
               String userInput = result.recognizedWords;
               if (userInput.isNotEmpty) {
-                setState(() {
-                  messages.add("Tú: $userInput");
-                });
+                setState(() => messages.add("Tú: $userInput"));
 
-                // Enviar el mensaje al backend para obtener respuesta
                 final response = await _sendMessageToBackend(userInput);
+                setState(
+                  () => messages.add("Asistente: ${response['text_response']}"),
+                );
 
-                // Mostrar el texto recibido
-                setState(() {
-                  messages.add("Asistente: ${response['text_response']}");
-                });
-
-                // Reproducir el audio
                 _playAudio(response['audio_response']);
 
-                // Verificar si el usuario ha dicho "salir", "terminar", o "adiós"
                 if (userInput.toLowerCase().contains("salir") ||
                     userInput.toLowerCase().contains("terminar") ||
                     userInput.toLowerCase().contains("adiós")) {
-                  setState(() {
-                    _interactionEnded = true;
-                  });
+                  setState(() => _interactionEnded = true);
                 }
               }
             }
@@ -96,23 +82,19 @@ class _AssistantScreenState extends State<AssistantScreen> {
       }
     } else {
       _speechToText.stop();
-      setState(() {
-        _isListening = false;
-      });
+      setState(() => _isListening = false);
     }
   }
 
-  // Función para reproducir audio
   void _playAudio(String audioData) async {
     try {
-      Uint8List bytes = base64Decode(audioData); // Convertir base64 a bytes
-      await _audioPlayer.play(BytesSource(bytes)); // Reproducir el audio
+      Uint8List bytes = base64Decode(audioData);
+      await _audioPlayer.play(BytesSource(bytes));
     } catch (e) {
       print("Error al reproducir el audio: $e");
     }
   }
 
-  // Función para navegar a la nueva pantalla "Generador de Maquillaje"
   void navigateToMakeupGenerator() {
     Navigator.push(
       context,
@@ -126,35 +108,86 @@ class _AssistantScreenState extends State<AssistantScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Asistente de Voz")),
-      body: Column(
+      appBar: AppBar(
+        title: Text("GlamBot 💋💄"),
+        backgroundColor: Colors.purple, // Fondo morado para el AppBar
+        automaticallyImplyLeading: false, // Elimina el ícono de regreso
+      ),
+      body: Stack(
         children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                return ListTile(title: Text(messages[index]));
-              },
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/background.jpg', // Asegúrate de tener esta imagen en assets
+              fit:
+                  BoxFit
+                      .cover, // Ajusta la imagen para que cubra todo el área disponible
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(_isListening ? Icons.stop : Icons.mic),
-                  onPressed: listenAndSendMessage,
+          Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.all(16.0),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      elevation: 2,
+                      margin: EdgeInsets.symmetric(vertical: 5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: Text(
+                          messages[index],
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-                if (_interactionEnded)
-                  ElevatedButton(
-                    onPressed: navigateToMakeupGenerator,
-                    child: Text("Generar Maquillaje"),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Colors.purple),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        _isListening ? Icons.stop_circle : Icons.mic,
+                        size: 40,
+                      ),
+                      color: _isListening ? Colors.red : Colors.blue,
+                      onPressed: listenAndSendMessage,
                     ),
-                  ),
-              ],
-            ),
+                    SizedBox(height: 10),
+                    AnimatedSwitcher(
+                      duration: Duration(milliseconds: 300),
+                      child:
+                          _interactionEnded
+                              ? Container(
+                                width: double.infinity,
+                                height: 50,
+                                child: ElevatedButton(
+                                  onPressed: navigateToMakeupGenerator,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Colors.purple, // Fondo morado
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    "Generar Maquillaje",
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                                ),
+                              )
+                              : SizedBox.shrink(),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
