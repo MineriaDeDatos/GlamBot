@@ -39,62 +39,77 @@ class PreviewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Vista Previa")),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      appBar: AppBar(
+        title: Text("Vista Previa"),
+        backgroundColor: Colors.purple, // Fondo morado para el AppBar
+        automaticallyImplyLeading: false, // Elimina el ícono de regreso),
+      ),
+      body: Stack(
         children: [
-          if (imageFile != null) Image.file(File(imageFile!.path), height: 300),
-          SizedBox(height: 20),
-          Row(
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/background.jpg', // Asegúrate de tener esta imagen en assets
+              fit: BoxFit.cover,
+            ),
+          ),
+          Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton(
-                onPressed: () async {
-                  bool success = await sendImageToServer(imageFile!);
-                  if (success) {
-                    // Solo navegar si la imagen fue aceptada
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AssistantScreen(),
-                      ),
-                    );
-                  } else {
-                    // Mostrar alerta si la imagen es rechazada
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text("Error"),
-                          content: Text(
-                            "No se detectó un rostro en la imagen. Intenta nuevamente.",
+              if (imageFile != null)
+                Image.file(File(imageFile!.path), height: 300),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      bool success = await sendImageToServer(imageFile!);
+                      if (success) {
+                        // Solo navegar si la imagen fue aceptada
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AssistantScreen(),
                           ),
-                          actions: [
-                            TextButton(
-                              child: Text("Aceptar"),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
                         );
-                      },
-                    );
-                  }
-                },
-                child: Text("Aceptar"),
-              ),
-              SizedBox(width: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => WebRTCVideoScreen(),
-                    ),
-                  );
-                },
-                child: Text("Rechazar"),
+                      } else {
+                        // Mostrar alerta si la imagen es rechazada
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text("Error"),
+                              content: Text(
+                                "No se detectó un rostro en la imagen. Intenta nuevamente.",
+                              ),
+                              actions: [
+                                TextButton(
+                                  child: Text("Aceptar"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    },
+                    child: Text("Aceptar"),
+                  ),
+                  SizedBox(width: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => WebRTCVideoScreen(),
+                        ),
+                      );
+                    },
+                    child: Text("Rechazar"),
+                  ),
+                ],
               ),
             ],
           ),

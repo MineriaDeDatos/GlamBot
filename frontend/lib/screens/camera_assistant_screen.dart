@@ -126,20 +126,36 @@ class _WebRTCVideoScreenState extends State<WebRTCVideoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("WebRTC con YOLO")),
-      body: Column(
+      appBar: AppBar(
+        title: Text("WebRTC con YOLO"),
+        backgroundColor: Colors.purple, // Fondo morado para el AppBar
+        automaticallyImplyLeading: false, // Elimina el ícono de regreso
+      ),
+      body: Stack(
         children: [
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              height: double.infinity,
-              child: RTCVideoView(
-                _remoteRenderer,
-                objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-              ),
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/background.jpg', // Asegúrate de tener esta imagen en assets
+              fit:
+                  BoxFit
+                      .cover, // Ajusta la imagen para que cubra todo el área disponible
             ),
           ),
-          ElevatedButton(onPressed: _takePhoto, child: Text("Tomar Foto")),
+          Column(
+            children: [
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  child: RTCVideoView(
+                    _remoteRenderer,
+                    objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                  ),
+                ),
+              ),
+              ElevatedButton(onPressed: _takePhoto, child: Text("Tomar Foto")),
+            ],
+          ),
         ],
       ),
     );

@@ -79,26 +79,41 @@ class _GeneradorMaquillajeScreenState extends State<GeneradorMaquillajeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Generador de Maquillaje")),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: _generateMakeup,
-              child: Text("Generar Maquillaje"),
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Colors.purple),
-              ),
+      appBar: AppBar(
+        title: Text("Generador de Maquillaje"),
+        backgroundColor: Colors.purple, // Fondo morado para el AppBar
+        automaticallyImplyLeading: false, // Elimina el ícono de regreso
+      ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/background.jpg', // Asegúrate de tener esta imagen en assets
+              fit: BoxFit.cover,
             ),
-            if (generatedImageUrl != null)
-              Image.memory(
-                base64Decode(
-                  generatedImageUrl!,
-                ), // Decodificar y mostrar la imagen
-              ),
-          ],
-        ),
+          ),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: _generateMakeup,
+                  child: Text("Generar Maquillaje"),
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(Colors.purple),
+                  ),
+                ),
+                SizedBox(height: 20),
+                if (generatedImageUrl != null)
+                  Image.memory(
+                    base64Decode(
+                      generatedImageUrl!, // Decodificar y mostrar la imagen
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
