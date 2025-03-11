@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../theme.dart';
 import 'camera_assistant_screen.dart'; // Asegúrate de que la ruta sea correcta
 
@@ -13,7 +14,7 @@ class _AssistantCameraScreenState extends State<AssistantCameraScreen> {
   XFile? _image;
 
   // Función para abrir la cámara y capturar una imagen.
-  Future<void> _openCamera() async {
+  Future<void> openCamera() async {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.camera);
       if (image != null) {
@@ -89,6 +90,11 @@ class _AssistantCameraScreenState extends State<AssistantCameraScreen> {
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 40),
+                    // Mostrar la imagen capturada si existe
+                    if (_image != null) ...[
+                      Image.file(File(_image!.path), height: 200, width: 200),
+                      SizedBox(height: 20),
+                    ],
                     // Botón para continuar
                     ElevatedButton(
                       onPressed: () {
