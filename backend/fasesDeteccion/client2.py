@@ -80,6 +80,9 @@ def receive_photo():
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             photo.save(filepath)
 
+            # Guardar la ruta de la foto en `user_data`
+            user_data['photo'] = filepath
+
             return jsonify({"message": "Photo received successfully!"}), 200
         else:
             return jsonify({"message": "Invalid photo format!"}), 400

@@ -17,7 +17,9 @@ class _AssistantScreenState extends State<AssistantScreen> {
     Uri.parse('ws://192.168.1.88:5001/socket.io/?EIO=4&transport=websocket'),
   );
 
-  List<String> messages = [];
+  List<String> messages = [
+    "Asistente: ¡Hola! ¿En qué puedo ayudarte?, puedes decir 'salir' o 'terminar' para finalizar la conversación.",
+  ];
   String promptFinal = "";
   stt.SpeechToText _speechToText = stt.SpeechToText();
   bool _isListening = false;

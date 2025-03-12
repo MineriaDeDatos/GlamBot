@@ -7,6 +7,8 @@ import requests
 from diffusers import StableDiffusionXLImg2ImgPipeline
 import os
 
+from nlp.test3 import init_image
+
 # Inicializar FastAPI
 app = FastAPI()
 
@@ -31,7 +33,12 @@ async def generate_image(
 ):
     try:
         # Cargar la imagen base
-        init_image = Image.open(BytesIO(await file.read())).convert("RGB").resize((1024, 1024))
+        # Leer la imagen desde el archivo
+        init_image = Image.open(BytesIO(await file.read())).convert("RGB")
+        # Obtener el tamaño original
+        width, height = init_image.size
+        # Redimensionar la imagen a 1024x1024
+        init_image = init_image.resize((height, width))
 
         # Generar imagen con IA
         with torch.cuda.amp.autocast(enabled=False):  # Evita errores de tipos de datos

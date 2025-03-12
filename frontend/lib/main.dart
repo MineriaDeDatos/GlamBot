@@ -27,7 +27,8 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Future.delayed(Duration(seconds: 2), () {
-      if (mounted) { // Verifica si el widget aún está en la pantalla
+      if (mounted) {
+        // Verifica si el widget aún está en la pantalla
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomeScreen()),
